@@ -1,26 +1,16 @@
 import React, { Fragment, useState, useEffect } from 'react'
-import { Layout, Button, Input, DatePicker, Space, Table, message, Popconfirm } from 'antd';
+import { Layout, Button, Input, DatePicker, Space, Table, message, Popconfirm, Modal } from 'antd';
 import axios from 'axios'
 import { saveAs } from "file-saver"
 import PreviewPopup from './PreviewPopup'
+import ImportTablePopup from './ImportTablePopup';
 import wrapIcon from "../../utils/wrapIcon"
 import "./index.less"
 
 const PAGESIZE = 10
-
-
-const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-        console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-    },
-    getCheckboxProps: (record) => ({
-        disabled: record.name === 'Disabled User',
-        name: record.name,
-    }),
-};
-
-
-
+const { Content } = Layout;
+const { RangePicker } = DatePicker;
+const { confirm } = Modal;
 
 export default function Code() {
 
@@ -61,33 +51,36 @@ export default function Code() {
             dataIndex: '',
             align: 'center',
             render: (text, record, index) => <div className='actionmenu'>
-                <Button onClick={() => getSourceCode(record.tableId)} type='link' size="small" icon={wrapIcon("EyeOutlined")}>View</Button>
+                <Button onClick={() => setList({ ...list, showPreview: true, currentTableId: record.tableId })} type='link' size="small" icon={wrapIcon("EyeOutlined")}>View</Button>
                 <Button type='link' size="small" icon={wrapIcon("EditOutlined")}>Edit</Button>
-
+                <Button onClick={() => deleteTable(record.tableId,record.tableName)} type='link' size="small" icon={wrapIcon("DeleteOutlined")}>Delete</Button>
                 <Popconfirm
-                    title={"Are you sure to delete the '" +record.tableName + "' ?"}
-                    onConfirm={() =>deleteTable(record.tableId)}
-                    okText="Yes"
-                    cancelText="No"
-                >
-                    <Button type='link' size="small" icon={wrapIcon("DeleteOutlined")}>Delete</Button>
-                </Popconfirm>
-                
-                <Popconfirm
-                    title={"Are you sure to sync the '" +record.tableName + "' table structure?"}
-                    onConfirm={() =>syncTable(record.tableName)}
-                    okText="Yes"
-                    cancelText="No"
+                    title={"Are you sure to sync the '" + record.tableName + "' table structure?"}
+                    onConfirm={() => syncTable(record.tableName)}
                 >
                     <Button type='link' size="small" icon={wrapIcon("SyncOutlined")}>Sync</Button>
                 </Popconfirm>
-                <Button onClick={() => downloadOne(record.tableName)} type='link' size="small" icon={wrapIcon("DownloadOutlined")}>Generate</Button>
+                <Button onClick={() => download(record.tableName)} type='link' size="small" icon={wrapIcon("DownloadOutlined")}>Generate</Button>
             </div>,
         },
     ];
 
-    const { Content } = Layout;
-    const { RangePicker } = DatePicker;
+    const rowSelection = {
+        onChange: (selectedRowKeys, selectedRows) => {
+            if (selectedRows.length === 0) {
+                return setList({ ...list, selectedTableIds: '', selectedTableNames: '' })
+            }
+            
+            let  selectedNames = ''
+            let  selectedIds  = ''
+            selectedRows.forEach(element => {
+                selectedIds += "," + element.tableId
+                selectedNames += "," + element.tableName
+            });
+            setList({ ...list, selectedTableIds: selectedIds.substring(1), selectedTableNames: selectedNames.substring(1) })
+        }
+    };
+
     const [list, setList] = useState({
         total: 0,
         data: [],
@@ -95,8 +88,11 @@ export default function Code() {
         loading: false,
         tableName: '',
         tableComment: '',
-        showPreview:false,
-        sourceCode:{}
+        showPreview: false,
+        showImport: false,
+        selectedTableNames: '',
+        selectedTableIds: '',
+        currentTableId: 0
     })
 
     async function getTables(pageNum) {
@@ -112,7 +108,9 @@ export default function Code() {
                     ...list,
                     total: response.data.total,
                     data: response.data.rows,
-                    loading: false
+                    pageNum,
+                    loading: false,
+                    showImport: false
                 })
             },
             error => {
@@ -121,7 +119,8 @@ export default function Code() {
         )
     }
 
-    async function downloadOne(tableName) {
+    async function download(tableName) {
+        if (tableName === '') { return message.warning('please select the table!') }
         await axios({
             method: 'get',
             url: `/batchGenCode?tables=${tableName}`,
@@ -137,23 +136,33 @@ export default function Code() {
         )
     }
 
-    async function deleteTable(tableIds) {
-        await axios({
-            method: 'delete',
-            url: `/${tableIds}`,
-        }).then(
-            response => {
-                if(response.data.code === 200){
-                    getTables(list.pageNum)
-                    message.success(response.data.msg)
-                }else{
-                    message.error(response.data.msg)
-                }
+    async function deleteTable(tableIds,tableNames) {
+        if (tableIds === '') { return message.warning('please select the table!') }
+        confirm({
+            title: `Do you Want to delete ${tableNames}?`,
+            icon: wrapIcon('ExclamationCircleOutlined'),
+            okText: 'Yes',
+            okType: 'danger',
+            cancelText: 'No',
+            onOk() {
+                axios({
+                    method: 'delete',
+                    url: `/${tableIds}`,
+                }).then(
+                    response => {
+                        if (response.data.code === 200) {
+                            getTables(list.pageNum)
+                            message.success(response.data.msg)
+                        } else {
+                            message.error(response.data.msg)
+                        }
+                    },
+                    error => {
+                        message.error(error.message)
+                    }
+                )
             },
-            error => {
-                message.error(error.message)
-            }
-        )
+        });
     }
 
     async function syncTable(tableName) {
@@ -162,26 +171,12 @@ export default function Code() {
             url: `/synchDb/${tableName}`,
         }).then(
             response => {
-                if(response.data.code === 200){
+                if (response.data.code === 200) {
                     getTables(list.pageNum)
                     message.success(response.data.msg)
-                }else{
+                } else {
                     message.error(response.data.msg)
                 }
-            },
-            error => {
-                message.error(error.message)
-            }
-        )
-    }
-
-    async function getSourceCode(currentTableId) {
-        axios({
-            method: 'get',
-            url: `/preview/${currentTableId}`
-        }).then(
-            response => {
-                setList({ ...list, showPreview: true,sourceCode:response.data.data})
             },
             error => {
                 message.error(error.message)
@@ -204,10 +199,10 @@ export default function Code() {
                     <Button onClick={() => setList({ ...list, tableName: '', tableComment: '' })} icon={wrapIcon("SyncOutlined")}>Reset</Button>
                 </Space>
                 <Space className='actions'>
-                    <Button icon={wrapIcon("DownloadOutlined")} className="generate">Generage</Button>
-                    <Button icon={wrapIcon("CloudUploadOutlined")} className="import">Import</Button>
+                    <Button onClick={() => download(list.selectedTableNames)} icon={wrapIcon("DownloadOutlined")} className="generate">Generage</Button>
+                    <Button onClick={() => setList({ ...list, showImport: true })} icon={wrapIcon("CloudUploadOutlined")} className="import">Import</Button>
                     <Button icon={wrapIcon("EditOutlined")} className="edit">Edit</Button>
-                    <Button icon={wrapIcon("DeleteOutlined")} className="delete">Delete</Button>
+                    <Button onClick={() => deleteTable(list.selectedTableIds,list.selectedTableNames)} icon={wrapIcon("DeleteOutlined")} className="delete">Delete</Button>
                 </Space>
             </Fragment>
             <Content>
@@ -219,12 +214,28 @@ export default function Code() {
                         }}
                         columns={columns}
                         dataSource={list.data}
-                        rowKey='tableId'
+                        rowKey={(record) => record.tableId}
                         loading={list.loading}
+                        pagination={
+                            {
+                                current: list.pageNum,
+                                total: list.total,
+                                loading: list.loading,
+                                defaultPageSize: PAGESIZE,
+                                onChange: getTables
+                            }
+                        }
                     />
                 </div>
             </Content>
-            <PreviewPopup isModalVisible={list.showPreview} cancel = {() =>  setList({ ...list, showPreview: false})} sourceCode= {list.sourceCode}/>
+            {list.showPreview ?
+                <PreviewPopup visible={list.showPreview} cancel={() => setList({ ...list, showPreview: false })} currentTableId={list.currentTableId} /> :
+                <Fragment />}
+            {list.showImport ?
+                <ImportTablePopup visible={list.showImport} cancel={() => setList({ ...list, showImport: false })} submit={() => getTables(1)} /> :
+                <Fragment />}
+
+
         </Layout>
     )
 }
