@@ -10,7 +10,7 @@ import './index.less'
 const { TabPane } = Tabs;
 
 export default function PreviewPopup(props) {
-    const { currentTableId, visible, cancel } = props
+    const { tableId, visible, cancel } = props
     const [sourceCode, setSourceCode] = useState({
         data: {},
         loading: false
@@ -22,7 +22,7 @@ export default function PreviewPopup(props) {
 
         axios({
             method: 'get',
-            url: `/preview/${currentTableId}`
+            url: `/preview/${tableId}`
         }).then(
             response => {
                 setSourceCode({ data: response.data.data })

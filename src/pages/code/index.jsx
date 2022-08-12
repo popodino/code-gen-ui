@@ -4,6 +4,7 @@ import axios from 'axios'
 import { saveAs } from "file-saver"
 import PreviewPopup from './PreviewPopup'
 import ImportTablePopup from './ImportTablePopup';
+import EditPopup from './EditPopup';
 import wrapIcon from "../../utils/wrapIcon"
 import "./index.less"
 
@@ -52,8 +53,8 @@ export default function Code() {
             align: 'center',
             render: (text, record, index) => <div className='actionmenu'>
                 <Button onClick={() => setList({ ...list, showPreview: true, currentTableId: record.tableId })} type='link' size="small" icon={wrapIcon("EyeOutlined")}>View</Button>
-                <Button type='link' size="small" icon={wrapIcon("EditOutlined")}>Edit</Button>
-                <Button onClick={() => deleteTable(record.tableId,record.tableName)} type='link' size="small" icon={wrapIcon("DeleteOutlined")}>Delete</Button>
+                <Button onClick={() => setList({ ...list, showEdit: true, currentTableId: record.tableId,selectedTableNames: record.tableName})} type='link' size="small" icon={wrapIcon("EditOutlined")}>Edit</Button>
+                <Button onClick={() => deleteTable(record.tableId, record.tableName)} type='link' size="small" icon={wrapIcon("DeleteOutlined")}>Delete</Button>
                 <Popconfirm
                     title={"Are you sure to sync the '" + record.tableName + "' table structure?"}
                     onConfirm={() => syncTable(record.tableName)}
@@ -70,9 +71,9 @@ export default function Code() {
             if (selectedRows.length === 0) {
                 return setList({ ...list, selectedTableIds: '', selectedTableNames: '' })
             }
-            
-            let  selectedNames = ''
-            let  selectedIds  = ''
+
+            let selectedNames = ''
+            let selectedIds = ''
             selectedRows.forEach(element => {
                 selectedIds += "," + element.tableId
                 selectedNames += "," + element.tableName
@@ -90,6 +91,7 @@ export default function Code() {
         tableComment: '',
         showPreview: false,
         showImport: false,
+        showEdit: false,
         selectedTableNames: '',
         selectedTableIds: '',
         currentTableId: 0
@@ -136,7 +138,7 @@ export default function Code() {
         )
     }
 
-    async function deleteTable(tableIds,tableNames) {
+    async function deleteTable(tableIds, tableNames) {
         if (tableIds === '') { return message.warning('please select the table!') }
         confirm({
             title: `Do you Want to delete ${tableNames}?`,
@@ -202,7 +204,7 @@ export default function Code() {
                     <Button onClick={() => download(list.selectedTableNames)} icon={wrapIcon("DownloadOutlined")} className="generate">Generage</Button>
                     <Button onClick={() => setList({ ...list, showImport: true })} icon={wrapIcon("CloudUploadOutlined")} className="import">Import</Button>
                     <Button icon={wrapIcon("EditOutlined")} className="edit">Edit</Button>
-                    <Button onClick={() => deleteTable(list.selectedTableIds,list.selectedTableNames)} icon={wrapIcon("DeleteOutlined")} className="delete">Delete</Button>
+                    <Button onClick={() => deleteTable(list.selectedTableIds, list.selectedTableNames)} icon={wrapIcon("DeleteOutlined")} className="delete">Delete</Button>
                 </Space>
             </Fragment>
             <Content>
@@ -229,13 +231,17 @@ export default function Code() {
                 </div>
             </Content>
             {list.showPreview ?
-                <PreviewPopup visible={list.showPreview} cancel={() => setList({ ...list, showPreview: false })} currentTableId={list.currentTableId} /> :
-                <Fragment />}
+                <PreviewPopup visible={list.showPreview} cancel={() => setList({ ...list, showPreview: false })} tableId={list.currentTableId} /> :
+                <Fragment />
+            }
             {list.showImport ?
                 <ImportTablePopup visible={list.showImport} cancel={() => setList({ ...list, showImport: false })} submit={() => getTables(1)} /> :
-                <Fragment />}
-
-
+                <Fragment />
+            }
+            {list.showEdit ?
+                <EditPopup visible={list.showEdit} cancel={() => setList({ ...list, showEdit: false })} tableId={list.currentTableId} tableName={list.selectedTableNames}/> :
+                <Fragment />
+            }
         </Layout>
     )
 }
