@@ -1,24 +1,23 @@
 import React, { useState, useEffect, Fragment, useRef } from 'react'
-import { Form, Tabs, Button, message, Spin, Input } from 'antd';
+import { Form, Tabs, Button, message, Spin } from 'antd';
 import CodeEditor from '@uiw/react-textarea-code-editor';
 import axios from 'axios'
 import './index.less'
 
 
 const { TabPane } = Tabs;
-const { TextArea } = Input;
-const tabNames = {
-  'javaDomain': { title: 'Domain.java', type: 'java' },
-  'javaMapper': { title: 'Mapper.java', type: 'java' },
-  'javaService': { title: 'Service.java', type: 'java' },
-  'javaServiceimpl': { title: 'ServiceImpl.java', type: 'java' },
-  'javaController': { title: 'Controller.java', type: 'java' },
-  'mapperXml': { title: 'Mapper.xml', type: 'xml' },
-  'systemSql': { title: 'Sql', type: 'sql' },
-  'apiJs': { title: 'Api.js', type: 'javascript' },
-  'indexVue': { title: 'Index.vue', type: 'javascript' },
-  'indexReact': { title: 'Index.jsx', type: 'javascript' }
-}
+const tabNames = [
+  { name: 'javaDomain', title: 'Domain.java' },
+  { name: 'javaMapper', title: 'Mapper.java' },
+  { name: 'javaService', title: 'Service.java' },
+  { name: 'javaServiceimpl', title: 'ServiceImpl.java' },
+  { name: 'javaController', title: 'Controller.java' },
+  { name: 'mapperXml', title: 'Mapper.xml' },
+  { name: 'systemSql', title: 'Sql' },
+  { name: 'apiJs', title: 'Api.js' },
+  { name: 'indexVue', title: 'Index.vue' },
+  { name: 'indexReact', title: 'Index.jsx' }
+]
 
 export default function CodeTemplate() {
 
@@ -76,33 +75,10 @@ export default function CodeTemplate() {
     );
   }
 
-
-  function createTabPane() {
-    let node = []
-    for (var name in tabNames) {
-      node = [...node, <TabPane tab={tabNames[name].title} key={name}>
-        <div className='codeContainer'>
-          {/* <Form.Item name={item} initialValue={codeTemplate.data[item]}>
-            <TextArea autoSize={{ minRows: 30, maxRows: 30 }} />
-          </Form.Item> */}
-          <CodeEditor
-            value={codeTemplate.data[name]}
-            language={tabNames[name].type}
-            placeholder="enter the source code."
-            onChange={(e) => changeCode(e, name)}
-            padding={15}
-            className='editer'
-          />
-        </div>
-      </TabPane>]
-    }
-    return node
-  }
-
   function changeCode(e, name) {
     const temp = codeTemplate.data
     temp[name] = e.currentTarget.value
-    console.log(temp)
+    console.log(name, temp)
     setCodeTemplate({ ...codeTemplate, data: temp })
   }
 
@@ -115,7 +91,23 @@ export default function CodeTemplate() {
         codeTemplate.loading ? <div style={{ padding: '250px 0 0 0', textAlign: 'center' }}><Spin tip="Loading..." size="large" /></div> :
           <Fragment>
             <Form ref={formRef} disabled={codeTemplate.updating}>
-              <Tabs defaultActiveKey="1">{createTabPane()} </Tabs>
+              <Tabs defaultActiveKey="1">{
+                tabNames.map(item => (<TabPane tab={item.title} key={item.name}>
+                  <div className='codeContainer'>
+                    {/* <Form.Item name={item} initialValue={codeTemplate.data[item]}>
+                      <TextArea autoSize={{ minRows: 30, maxRows: 30 }} />
+                    </Form.Item> */}
+                    <CodeEditor
+                      value={codeTemplate.data[item.name]}
+                      language={item.title.substring(item.title.indexOf('.') + 1)}
+                      placeholder="enter the source code."
+                      onChange={(e) => changeCode(e, item.name)}
+                      padding={15}
+                      className='editer'
+                    />
+                  </div>
+                </TabPane>))
+              } </Tabs>
             </Form>
             <div><Button key="submit" type="primary" loading={codeTemplate.updating} onClick={updateCodeTemplate} className='submitBtn'>Submit</Button></div>
           </Fragment>
