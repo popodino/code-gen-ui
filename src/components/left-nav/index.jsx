@@ -21,8 +21,8 @@ export default function LeftNav() {
             </Link>
             <div className='left-nav-menu'>
                 <Menu
-                    defaultSelectedKeys={location.pathname}
-                    defaultOpenKeys={location.pathname}
+                    selectedKeys={location.pathname}
+                    openKeys={location.pathname}
                     theme="dark"
                     items={menulist}
                     onClick={onClick}/>

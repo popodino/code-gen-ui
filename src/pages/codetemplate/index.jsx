@@ -8,16 +8,16 @@ import './index.less'
 const { TabPane } = Tabs;
 const { TextArea } = Input;
 const tabNames = {
-  'javaDomain': { title: 'Java Domain', type: 'java' },
-  'javaMapper': { title: 'Java Mapper', type: 'java' },
-  'javaService': { title: 'Java Service', type: 'java' },
-  'javaServiceimpl': { title: 'Java Service Impl', type: 'java' },
-  'javaController': { title: 'Java Controller', type: 'java' },
-  'mapperXml': { title: 'Mapper XML', type: 'xml' },
+  'javaDomain': { title: 'Domain.java', type: 'java' },
+  'javaMapper': { title: 'Mapper.java', type: 'java' },
+  'javaService': { title: 'Service.java', type: 'java' },
+  'javaServiceimpl': { title: 'ServiceImpl.java', type: 'java' },
+  'javaController': { title: 'Controller.java', type: 'java' },
+  'mapperXml': { title: 'Mapper.xml', type: 'xml' },
   'systemSql': { title: 'Sql', type: 'sql' },
-  'apiJs': { title: 'Api JS', type: 'javascript' },
-  'indexVue': { title: 'Index Vue', type: 'javascript' },
-  'indexReact': { title: 'Index React', type: 'javascript' }
+  'apiJs': { title: 'Api.js', type: 'javascript' },
+  'indexVue': { title: 'Index.vue', type: 'javascript' },
+  'indexReact': { title: 'Index.jsx', type: 'javascript' }
 }
 
 export default function CodeTemplate() {

@@ -6,8 +6,9 @@ const { TabPane } = Tabs;
 const { Option } = Select;
 const { TextArea } = Input;
 const JAVA_TYPE = ['Long', 'String', 'Integer', 'Double', 'BigDecimal', 'Date', 'Boolean']
-const HTML_TYPE = ['Long', 'String', 'Integer', 'Double', 'BigDecimal', 'Date', 'Boolean']
-const QUERY_TYPE = ['=', '!=', '>', '>=', '<', '<=', 'LIKE', 'BETWEEN']
+const HTML_TYPE = ['input', 'textarea', 'dropdown', 'radio', 'checkbox', 'date', 'img']
+const QUERY_TYPE = [{ value: 'EQ', name: '=' }, { value: 'NE', name: '!=' }, { value: 'GT', name: '>' }, { value: 'GTE', name: '>=' },
+                    { value: 'LT', name: '<' }, { value: 'LTE', name: '<=' }, { value: 'LIKE', name: 'Like' }, { value: 'BETWEEN', name: 'Between' }]
 
 const columns = [
     {
@@ -77,7 +78,7 @@ const columns = [
         align: 'center',
         render: (text, record, index) =>
             <Select style={{ width: 100 }} defaultValue={record.queryType} onChange={() => { }}>
-                {QUERY_TYPE.map(item => <Option key={item} value={item}>{item}</Option>)}
+                {QUERY_TYPE.map(item => <Option key={item.name} value={item.value}>{item.name}</Option>)}
             </Select>
     },
     {
@@ -105,8 +106,8 @@ export default function EditPopup(props) {
     const { visible, cancel, tableId, tableName } = props
     const [editInfo, setEditInfo] = useState({
         info: {},
-        rows:[],
-        tables:[],
+        rows: [],
+        tables: [],
         loading: false,
     })
 
