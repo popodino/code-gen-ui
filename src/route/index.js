@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom"
 import Login from "../pages/login";
 import Admin from "../pages/admin";
 import Code from "../pages/code";
-import CodeConfig from "../pages/codeconfig";
+import CodeTemplate from "../pages/codetemplate";
 
 export default function routes() {
     return [
@@ -19,8 +19,8 @@ export default function routes() {
                     element: <Code />
                 },
                 {
-                    path: "config",
-                    element: <CodeConfig />
+                    path: "template",
+                    element: <CodeTemplate />
                 }
             ]
         },

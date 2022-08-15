@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link,useNavigate } from 'react-router-dom';
+import { Link,useNavigate,useLocation  } from 'react-router-dom';
 import { Menu  } from 'antd';
 import menulist from "../../config/menuConfig"
 import loginImg from '../../assets/images/logo.png';
@@ -7,6 +7,7 @@ import './index.less'
 
 export default function LeftNav() {
     const navigate = useNavigate()
+    const location = useLocation();
 
     const onClick = (e) => {
         navigate(e.key)
@@ -20,8 +21,8 @@ export default function LeftNav() {
             </Link>
             <div className='left-nav-menu'>
                 <Menu
-                    defaultSelectedKeys={"/admin/code"}
-                    defaultOpenKeys={"/admin/code"}
+                    defaultSelectedKeys={location.pathname}
+                    defaultOpenKeys={location.pathname}
                     theme="dark"
                     items={menulist}
                     onClick={onClick}/>
