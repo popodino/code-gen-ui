@@ -1,8 +1,9 @@
 import React from 'react'
-import { useNavigate } from "react-router-dom";
-import { useSelector ,useDispatch} from 'react-redux'
-import { Button } from 'antd';
-import {logout} from "../../redux/slices/loginSlice"
+import { useNavigate,useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux'
+import { Button, Breadcrumb } from 'antd';
+import { logout } from "../../redux/slices/loginSlice"
+import wrapIcon from '../../utils/wrapIcon';
 import "./index.less"
 
 
@@ -10,6 +11,7 @@ export default function Header() {
     const user = useSelector(state => state.login.value)
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const location = useLocation();
 
     function dologout() {
         dispatch(logout())
@@ -23,12 +25,11 @@ export default function Header() {
                 <Button type="text" onClick={dologout}>Logout</Button>
             </div>
             <div className='header-bottom'>
-                {/*<div className='header-bottom-left'>xxx</div>
-                 <div className='header-bottom-right'>
-                    <span>xxx</span>
-                    <span>xxx</span>
-                    <span>xxx</span>
-                </div> */}
+                <Breadcrumb>
+                    <Breadcrumb.Item>{wrapIcon('HomeOutlined')}</Breadcrumb.Item>
+                    <Breadcrumb.Item>Code</Breadcrumb.Item>
+                    <Breadcrumb.Item>{location.pathname === '/admin/code'? 'Code Generate':'Code Template'}</Breadcrumb.Item>
+                </Breadcrumb>
             </div>
         </div>
     )

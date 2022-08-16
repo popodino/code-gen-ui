@@ -66,8 +66,15 @@ export default function CodeTemplate() {
       data: codeTemplate.data
     }).then(
       response => {
-        getCodeTemplate()
-        message.success(response.data.msg)
+
+        if (response.data.code === 200) {
+          getCodeTemplate()
+          message.success(response.data.msg)
+        } else {
+          setCodeTemplate({ ...codeTemplate, updating: false })
+          message.error(response.data.msg)
+        }
+
       },
       error => {
         message.error(error.message)
@@ -78,7 +85,6 @@ export default function CodeTemplate() {
   function changeCode(e, name) {
     const temp = codeTemplate.data
     temp[name] = e.currentTarget.value
-    console.log(name, temp)
     setCodeTemplate({ ...codeTemplate, data: temp })
   }
 
